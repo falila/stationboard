@@ -4,9 +4,9 @@ RUN adduser -D stationboard
 
 WORKDIR /usr/src/stationboard
 
-COPY requirement.txt requirement.txt
+COPY requirements.txt requirements.txt
 RUN python3 -m venv venv
-RUN venv/bin/pip install -r requirement.txt
+RUN venv/bin/pip install -r requirements.txt
 RUN venv/bin/pip install gunicorn
 
 COPY app app
