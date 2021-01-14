@@ -2,25 +2,30 @@ from flask import Flask
 from flask_marshmallow import Marshmallow
 from flask_sqlalchemy import SQLAlchemy
 from config import Config
+from app.model import db, init_db, ma
+from flask_migrate import Migrate
 
 
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
-    db = SQLAlchemy(app)
-    ma = Marshmallow(app)
+     #db = SQLAlchemy(app)
+    
+    db.init_app(app)
+    ma.init_app(app)
+    with app.app_context():
+        init_db()
 
     from flask_restful import Api
     
     from app.api import bp as api_bp
-    from app.api.stations import Station , Stations
+    from app.api.stations import StationResource , StationsResource
     api = Api(api_bp)
-    api.add_resource(Station, '/station/<int:station_id>')
-    api.add_resource(Stations, '/stations')
+    api.add_resource(StationResource, '/station/<int:station_id>')
+    api.add_resource(StationsResource, '/stations')
 
     app.register_blueprint(api_bp, url_prefix='/api')
 
     return app
 
 
-from app import model 
