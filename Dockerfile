@@ -5,13 +5,14 @@ RUN adduser -D stationboard
 WORKDIR /usr/src/stationboard
 
 COPY requirements.txt requirements.txt
+RUN python3 -m pip install --upgrade pip
 RUN python3 -m venv venv
 RUN venv/bin/pip install -r requirements.txt
 RUN venv/bin/pip install gunicorn
 
 COPY app app
 # COPY migrations migrations
-COPY stationboard.py start.sh ./
+COPY stationboard.py .env config.py start.sh ./
 RUN chmod +x start.sh
 
 ENV FLASK_APP stationboard.py

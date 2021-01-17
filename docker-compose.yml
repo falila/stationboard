@@ -1,0 +1,15 @@
+version: '2'
+services:
+    web:
+        build: .
+        ports:
+            - "8000:5000"
+        volumes:
+            - .:/code
+        depends_on:
+            - redis
+        environment: 
+          FLASK_DEBUG: 1
+          FLASK_APP: ./stationboard.py
+    redis:
+        image: redis

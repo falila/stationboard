@@ -1,43 +1,70 @@
-from flask_restful import Resource
+from flask_restful import Resource, request
+from flask import jsonify, make_response
+from app.model import Station, Trip, db
+import json
 
 
-STATIONS = {
-    'stations' : [
-        {
-        'id':1, 'name':'NORTHBOUND', 'location':'south of the city', 'trips': [
-            {'id':1, 'code':'TR01', 'platf':'ptf-56','time':'2:30pm', 'status':'on time', 'dest':'London ON'},
-            {'id':2, 'code':'TR02', 'platf':'ptf-25','time':'00:3am', 'status':'on time', 'dest':'Montreal QC'},
-            {'id':3, 'code':'TR03', 'platf':'ptf-89','time':'4:30pm', 'status':'on time', 'dest':'Toronto ON'},
-         ]
-       },
-    {},
-  ]
-}
+class StationResource(Resource):
 
-
-class Station(Resource):
-    
     def get(self, station_id):
-        station = None
-        for _station in STATIONS['stations']:
-            if _station['id'] == station_id:
-                station = _station
-                break
-        return station, 200
+
+        station = Station.query.filter(Station.id == station_id).first()
+        if not station:
+            return "", 200
+        return jsonify(station.toDict())
 
     def delete(self, station_id):
-        del STATIONS[station_id]
-        return '', 204
+        station = Station.query.filter_by(id=station_id).first()
+        if not station:
+            Station.query.delete(station)
 
-    def put(self, station_id):
-        STATIONS[station_id] = ""
-        return station_id, 201
+        return {'id': station.id}, 204
+
+    def post(self, station_id):
+        body = request.get_json()
+
+        if not body:
+            return {'message': 'invalid data '}, 422
+
+        if "id" in body.keys():
+            del body['id']
+
+        _ok = Station.query.filter_by(id=station_id).update(
+            {**body}, synchronize_session=False)
+        db.session.commit()
+
+        if not _ok:
+            return {'message': 'station already exists'}, 400
+
+        return jsonify({'id': station_id})
 
 
-class Stations(Resource):
+class StationsResource(Resource):
 
     def get(self):
-        return STATIONS, 200
+        stations = Station.query.all()
+        statArr = []
+        for station in stations:
+            statArr.append(station.toDict())
+
+        return jsonify(statArr)
 
     def post(self):
-        return STATIONS
+
+        data = request.get_json(force=True)
+        if not data:
+            return {'message': 'No input data found'}, 400
+
+        _station = Station.query.filter_by(name=data['name']).first()
+
+        if _station:
+            return {'message': 'station name already exists'}, 400
+
+        if "id" in data.keys():
+            del data['id']
+
+        _station = Station(**data)
+
+        db.session.add(_station)
+        db.session.commit()
+        return jsonify(_station.toDict())

@@ -8,7 +8,7 @@ load_dotenv(os.path.join(basedir, '.env'))
 class Config(object):
 
     FLASK_APP = os.environ.get('FLASK_APP')
-    SECRET_KEY = os.environ.get('SECRET_KEY') or '47846afsdaf54afsdfsdfsfasf'
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'you would never guess it'
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'app.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = True
@@ -21,4 +21,3 @@ class Config(object):
     ADMINS = ['station-support@stations54.com']
     LANGUAGES = ['en', 'es']
     REDIS_URL = os.environ.get('REDIS_URL') or 'redis://'
-   
