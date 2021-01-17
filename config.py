@@ -21,4 +21,3 @@ class Config(object):
     ADMINS = ['station-support@stations54.com']
     LANGUAGES = ['en', 'es']
     REDIS_URL = os.environ.get('REDIS_URL') or 'redis://'
-   

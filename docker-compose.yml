@@ -8,6 +8,8 @@ services:
             - .:/code
         depends_on:
             - redis
+        environment: 
+          FLASK_DEBUG: 1
+          FLASK_APP: ./stationboard.py
     redis:
         image: redis
-
