@@ -1,9 +1,10 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.types import DateTime, Integer, String
+from sqlalchemy.types import DateTime, Integer, String, Float
 from sqlalchemy.orm import relationship
 from sqlalchemy import ForeignKey, inspect
 from flask_restful import Resource
 import datetime
+from sqlalchemy.sql.schema import Column, Table
 
 
 db = SQLAlchemy()
@@ -16,6 +17,14 @@ class Base(db.Model):
         return {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}
 
 
+station_trips = Table('station_trips', Base.metadata,
+                      Column('station_id', ForeignKey(
+                          'stations.id'), primary_key=True),
+                      Column('trip_id', ForeignKey(
+                          'trips.id'), primary_key=True)
+                      )
+
+
 class Station(Base):
     __tablename__ = 'stations'
     id = db.Column(Integer, primary_key=True)
@@ -23,6 +32,9 @@ class Station(Base):
     location = db.Column(String(32), nullable=True)
     date_created = db.Column(DateTime, default=datetime.datetime.now)
     last_updated = db.Column(DateTime, onupdate=datetime.datetime.now)
+    trips = relationship('Trip',
+                         secondary=station_trips,
+                         back_populates='stations')
 
     def __rep__(self):
         return "<Station(name='%')>" % self.name
@@ -35,34 +47,33 @@ class Bus(Base):
     carrier = db.Column(String(50), nullable=False)
     date_created = db.Column(DateTime, default=datetime.datetime.now)
     last_updated = db.Column(DateTime, onupdate=datetime.datetime.now)
-    trips = db.relationship("Trip", backref='bus')
+    longitude = db.Column(Float(), nullable=True)
+    latitue = db.Column(Float(), nullable=True)
+    trips = db.relationship("Trip", back_populates='buses', lazy="dynamic")
 
     def __rep__(self):
         return "<Bus(code='%' carrier='%)>" % self.code, self.carrier
-
-    def toDict(self):
-        return {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}
 
 
 class Trip(Base):
     __tablename__ = 'trips'
     id = db.Column(Integer, primary_key=True)
     name = db.Column(String(50), nullable=False)
-    dest = db.Column(String(50), nullable=False)
-    orig = db.Column(String(50), nullable=True)
+    dest_station = db.Column(String(50), nullable=False)
+    orig_station = db.Column(String(50), nullable=False)
     time = db.Column(DateTime, nullable=True)
     plateform = db.Column(String(50), nullable=True)
     status = db.Column(Integer, default=0)
     date_created = db.Column(DateTime, default=datetime.datetime.now)
     last_updated = db.Column(DateTime, onupdate=datetime.datetime.now)
-    bus_id = db.Column(Integer, ForeignKey('buses.id'))
-    #bus = db.relationship("Bus", back_populates="trips", )
+    bus = db.Column(Integer, ForeignKey('buses.id'))
+    buses = db.relationship("Bus", back_populates="trips")
+    stations = relationship('Station',
+                            secondary=station_trips,
+                            back_populates='trips')
 
     def __rep__(self):
         return "<Trip(name='%' time='%' status='%)>" % self.name, self.time, self.status
-
-    def toDict(self):
-        return {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}
 
 
 def init_db():
@@ -70,11 +81,37 @@ def init_db():
     db.drop_all()
     db.create_all()
 
-    for i in range(10):
+    for i in range(1, 11):
         station = Station(name="station {}".format(i))
         db.session.add(station)
 
+    bus = Bus(code="B1452", carrier="TTC")
+    db.session.add(bus)
     db.session.commit()
+
+    for i in range(1, 11):
+        trip = Trip(name="trip {}".format(
+            i), dest_station=" NW {} ".format(i), orig_station="MTL", bus=bus.id)
+        db.session.add(trip)
+
+    db.session.commit()
+    station = Station.query.filter_by(id=1).first()
+    for trip in Trip.query.all():
+        station.trips.append(trip)
+
+    db.session.add(station)
+    db.session.commit()
+
+    print("station with trips")
+    print(station.toDict())
+    for trip in station.trips:
+        print(trip.toDict())
+
+    print("bus with trips")
+
+    print(bus.toDict())
+    for trip in bus.trips:
+        print(trip.toDict())
 
     if __name__ == '__main__':
         init_db()

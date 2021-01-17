@@ -10,8 +10,6 @@ Flask-RESTful = "*"
 Flask-Migrate = "*"
 Flask-SQLAlchemy = "*"
 Flask-Script = "*"
-flask-marshmallow = "*"
-marshmallow-sqlalchemy = "*"
 
 [dev-packages]
 
