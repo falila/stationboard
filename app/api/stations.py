@@ -5,10 +5,12 @@ import json
 
 
 class StationResource(Resource):
-    
+
     def get(self, station_id):
-        
+
         station = Station.query.filter(Station.id == station_id).first()
+        if not station:
+            return "", 200
         return jsonify(station.toDict())
 
     def delete(self, station_id):
@@ -20,16 +22,20 @@ class StationResource(Resource):
 
     def post(self, station_id):
         body = request.get_json()
-        
+
         if not body:
             return {'message': 'invalid data '}, 422
 
-        _ok = Station.query.filter_by(id=station_id).update({**body}, synchronize_session=False)
-        db.session.flush()  
+        if "id" in body.keys():
+            del body['id']
+
+        _ok = Station.query.filter_by(id=station_id).update(
+            {**body}, synchronize_session=False)
+        db.session.commit()
 
         if not _ok:
             return {'message': 'station already exists'}, 400
-     
+
         return jsonify({'id': station_id})
 
 
@@ -44,21 +50,21 @@ class StationsResource(Resource):
         return jsonify(statArr)
 
     def post(self):
-        
+
         data = request.get_json(force=True)
         if not data:
-            return {'message': 'No input data found'}, 400         
+            return {'message': 'No input data found'}, 400
 
-        #data , errors = station_Schema.load(data=data)   
-       
         _station = Station.query.filter_by(name=data['name']).first()
 
         if _station:
             return {'message': 'station name already exists'}, 400
- 
+
+        if "id" in data.keys():
+            del data['id']
+
         _station = Station(**data)
-        print(_station.toDict())
 
         db.session.add(_station)
-        db.session.flush()   
+        db.session.commit()
         return jsonify(_station.toDict())
