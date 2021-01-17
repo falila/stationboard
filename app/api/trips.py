@@ -34,7 +34,7 @@ class TripResource(Resource):
         db.session.commit()
 
         if not _ok:
-            return {'message': 'Trip already exists'}, 400
+            return {'message': 'error cannot update a trip'}, 400
 
         return jsonify({'id': trip_id})
 
