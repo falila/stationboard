@@ -1,6 +1,6 @@
-from flask_restful import Resource, request
+from flask_restful import Resource, reqparse, request
 from flask import jsonify, make_response
-from app.model import Station, Trip, db
+from app.model import Bus, Station, Trip, db
 import json
 
 
@@ -37,6 +37,33 @@ class StationResource(Resource):
             return {'message': 'station already exists'}, 400
 
         return jsonify({'id': station_id})
+
+
+class StationTripResource(Resource):
+
+    def get(self, station_id):
+        parser = reqparse.RequestParser()
+        parser.add_argument('interval', type=int, required=False,
+                            help='interval cannot be converted')
+        args = parser.parse_args()
+        if args['interval']:
+            print("interval {}".format(args['interval']))
+
+        station = Station.query.filter(Station.id == station_id).first()
+        if not station or not station.trips:
+            return {}, 200
+        else:
+            tripArr = []
+            _trip = {}
+            for trip in station.trips:
+                if trip.bus:
+                    _bus = Bus.query.filter_by(id=trip.bus).first()
+                    if _bus:
+                        _trip = trip.toDict()
+                        _trip['bus'] = _bus.toDict()
+                tripArr.append(_trip)
+
+        return jsonify(tripArr)
 
 
 class StationsResource(Resource):
