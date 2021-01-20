@@ -5,6 +5,7 @@ from sqlalchemy import ForeignKey, inspect
 from flask_restful import Resource
 import datetime
 from sqlalchemy.sql.schema import Column, Table
+from sqlalchemy.types import TIMESTAMP
 
 
 db = SQLAlchemy()
@@ -14,7 +15,15 @@ class Base(db.Model):
     __abstract__ = True
 
     def toDict(self):
-        return {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}
+        obj_dict = {}
+        for c in inspect(self).mapper.column_attrs:
+            value = getattr(self, c.key)
+            if value and isinstance(value, datetime.datetime):
+                new_value = value.strftime("%Y-%m-%d %H:%M:%S")
+                obj_dict[c.key] = new_value
+            else:
+                obj_dict[c.key] = value
+        return obj_dict
 
 
 station_trips = Table('station_trips', Base.metadata,
@@ -30,8 +39,8 @@ class Station(Base):
     id = db.Column(Integer, primary_key=True)
     name = db.Column(String(50), nullable=False)
     location = db.Column(String(32), nullable=True)
-    date_created = db.Column(DateTime, default=datetime.datetime.now)
-    last_updated = db.Column(DateTime, onupdate=datetime.datetime.now)
+    date_created = db.Column(TIMESTAMP, default=datetime.datetime.now())
+    last_updated = db.Column(TIMESTAMP, onupdate=datetime.datetime.now())
     trips = relationship('Trip',
                          secondary=station_trips,
                          back_populates='stations')
@@ -45,10 +54,10 @@ class Bus(Base):
     id = db.Column(Integer, primary_key=True)
     code = db.Column(String(50), nullable=False)
     carrier = db.Column(String(50), nullable=False)
-    date_created = db.Column(DateTime, default=datetime.datetime.now)
-    last_updated = db.Column(DateTime, onupdate=datetime.datetime.now)
+    date_created = db.Column(TIMESTAMP, default=datetime.datetime.now)
+    last_updated = db.Column(TIMESTAMP, onupdate=datetime.datetime.now)
     longitude = db.Column(Float(), nullable=True)
-    latitue = db.Column(Float(), nullable=True)
+    latitude = db.Column(Float(), nullable=True)
     trips = db.relationship("Trip", back_populates='buses', lazy="dynamic")
 
     def __rep__(self):
@@ -61,13 +70,13 @@ class Trip(Base):
     name = db.Column(String(50), nullable=False)
     dest_station = db.Column(String(50), nullable=False)
     orig_station = db.Column(String(50), nullable=False)
-    time = db.Column(DateTime, nullable=True)
+    time = db.Column(TIMESTAMP, nullable=True)
     plateform = db.Column(String(50), nullable=True)
     status = db.Column(Integer, default=0)
-    date_created = db.Column(DateTime, default=datetime.datetime.now)
-    last_updated = db.Column(DateTime, onupdate=datetime.datetime.now)
+    date_created = db.Column(TIMESTAMP, default=datetime.datetime.now)
+    last_updated = db.Column(TIMESTAMP, onupdate=datetime.datetime.now)
     bus = db.Column(Integer, ForeignKey('buses.id'))
-    buses = db.relationship("Bus", back_populates="trips")
+    buses = db.relationship("Bus", uselist=False, back_populates="trips")
     stations = relationship('Station',
                             secondary=station_trips,
                             back_populates='trips')
@@ -85,13 +94,14 @@ def init_db():
         station = Station(name="station {}".format(i))
         db.session.add(station)
 
-    bus = Bus(code="B1452", carrier="TTC")
+    bus = Bus(code="B1452", carrier="TTC",
+              latitude=21.654888, longitude=78.489664)
     db.session.add(bus)
     db.session.commit()
 
     for i in range(1, 11):
         trip = Trip(name="trip {}".format(
-            i), dest_station=" NW {} ".format(i), orig_station="MTL", bus=bus.id)
+            i), dest_station=" London station {} ".format(i), time=datetime.datetime.now(), orig_station="MTL", bus=bus.id, plateform="P{}".format(i))
         db.session.add(trip)
 
     db.session.commit()
@@ -102,12 +112,12 @@ def init_db():
     db.session.add(station)
     db.session.commit()
 
-    print("station with trips")
+    print(" A station with trips")
     print(station.toDict())
     for trip in station.trips:
         print(trip.toDict())
 
-    print("bus with trips")
+    print("A bus with trips")
 
     print(bus.toDict())
     for trip in bus.trips:
