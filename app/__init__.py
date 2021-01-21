@@ -19,8 +19,8 @@ def create_app(config_class=ProdConfig):
     from app.api.stations import StationResource, StationsResource, StationTripResource
     from app.api.trips import TripResource, TripsResource
     api = Api(api_bp)
-    api.add_resource(StationResource, '/station/<int:station_id>')
     api.add_resource(StationsResource, '/stations')
+    api.add_resource(StationResource, '/station/<int:station_id>')
     api.add_resource(StationTripResource, '/station/<int:station_id>/trips')
     api.add_resource(TripResource, '/trip/<int:trip_id>')
     api.add_resource(TripsResource, '/trips')
