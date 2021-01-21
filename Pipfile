@@ -10,6 +10,9 @@ Flask-RESTful = "*"
 Flask-Migrate = "*"
 Flask-SQLAlchemy = "*"
 Flask-Script = "*"
+pydantic = "*"
+email-validator = "*"
+typing-extensions = "*"
 
 [dev-packages]
 
