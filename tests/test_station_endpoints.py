@@ -50,3 +50,27 @@ def test_create_station_error(my_test_client):
     """
     resp = my_test_client.post('/api/stations')
     assert resp.status_code == 400
+
+
+def test_update_station_success(my_test_client):
+    """
+    GIVEN an app configured for testing
+    WHEN the '/api/stations' is passed (POST) with empty data
+    THEN check that the response is valid and has a new station data
+    """
+    _station = {'id': 1, 'name': 'updated station1',
+                'location': "Toronto", 'date_created': '2021-01-20 23:38:01'}
+    resp = my_test_client.post('/api/station/1', json={**_station})
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data['id'] == 1
+
+
+def test_update_station_error(my_test_client):
+    """
+    GIVEN an app configured for testing
+    WHEN the '/api/stations' is passed (POST) with empty data
+    THEN check that the response is valid and has a new station data
+    """
+    resp = my_test_client.post('/api/stations')
+    assert resp.status_code == 400
