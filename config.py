@@ -45,6 +45,7 @@ class DevelopmentConfig(object):
 class TestingConfig(object):
 
     FLASK_APP = os.environ.get('FLASK_APP')
+    FLASK_DEBUG = True
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'you would never guess it'
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'app.db')
