@@ -13,6 +13,7 @@ Flask-Script = "*"
 pydantic = "*"
 email-validator = "*"
 typing-extensions = "*"
+pytest = "*"
 
 [dev-packages]
 
