@@ -28,7 +28,7 @@ def test_get_stations(my_test_client):
     assert len(data) == 10
 
 
-def test_create_station_succes(my_test_client):
+def test_create_station_success(my_test_client):
     """
     GIVEN an app configured for testing
     WHEN the '/api/stations' is passed (POST) with valid station json data
