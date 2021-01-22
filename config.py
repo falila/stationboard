@@ -21,6 +21,9 @@ class ProdConfig(object):
     ADMINS = ['station-support@stations54.com']
     LANGUAGES = ['en', 'es']
     REDIS_URL = os.environ.get('REDIS_URL') or 'redis://'
+    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
+    JWT_BLACKLIST_ENABLED = os.environ.get('JWT_BLACKLIST_ENABLED')
+    JWT_BLACKLIST_TOKEN_CHECKS = os.environ.get('JWT_BLACKLIST_TOKEN_CHECKS')
 
 
 class DevelopmentConfig(object):
@@ -40,6 +43,9 @@ class DevelopmentConfig(object):
     ADMINS = ['station-support@stations54.com']
     LANGUAGES = ['en', 'es']
     REDIS_URL = os.environ.get('REDIS_URL') or 'redis://'
+    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
+    JWT_BLACKLIST_ENABLED = os.environ.get('JWT_BLACKLIST_ENABLED')
+    JWT_BLACKLIST_TOKEN_CHECKS = os.environ.get('JWT_BLACKLIST_TOKEN_CHECKS')
 
 
 class TestingConfig(object):
@@ -59,3 +65,6 @@ class TestingConfig(object):
     ADMINS = ['station-support@stations54.com']
     LANGUAGES = ['en', 'es']
     REDIS_URL = os.environ.get('REDIS_URL') or 'redis://'
+    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
+    JWT_BLACKLIST_ENABLED = os.environ.get('JWT_BLACKLIST_ENABLED')
+    JWT_BLACKLIST_TOKEN_CHECKS = os.environ.get('JWT_BLACKLIST_TOKEN_CHECKS')
