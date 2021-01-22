@@ -6,12 +6,15 @@ from flask_restful import Resource
 import datetime
 from sqlalchemy.sql.schema import Column, Table
 from sqlalchemy.types import TIMESTAMP
-
+from passlib.hash import pbkdf2_sha256 as sha256
 
 db = SQLAlchemy()
 
 
 class Base(db.Model):
+    """
+    Base Model Class
+    """
     __abstract__ = True
 
     def toDict(self):
@@ -35,6 +38,9 @@ station_trips = Table('station_trips', Base.metadata,
 
 
 class Station(Base):
+    """
+    Station Model Class
+    """
     __tablename__ = 'stations'
     id = db.Column(Integer, primary_key=True)
     name = db.Column(String(50), nullable=False)
@@ -50,6 +56,9 @@ class Station(Base):
 
 
 class Bus(Base):
+    """
+    Bus Model Class
+    """
     __tablename__ = 'buses'
     id = db.Column(Integer, primary_key=True)
     code = db.Column(String(50), nullable=False)
@@ -65,6 +74,9 @@ class Bus(Base):
 
 
 class Trip(Base):
+    """
+    Trip Model Class
+    """
     __tablename__ = 'trips'
     id = db.Column(Integer, primary_key=True)
     name = db.Column(String(50), nullable=False)
@@ -83,6 +95,122 @@ class Trip(Base):
 
     def __rep__(self):
         return "<Trip(name='%' time='%' status='%)>" % self.name, self.time, self.status
+
+
+class UserModel(db.Model):
+    """
+    User Model Class
+    """
+
+    __tablename__ = 'users'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    username = db.Column(db.String(120), unique=True, nullable=False)
+
+    password = db.Column(db.String(120), nullable=False)
+
+    """
+    Save user details in Database
+    """
+
+    def save_to_db(self):
+
+        db.session.add(self)
+
+        db.session.commit()
+
+    """
+    Find user by username
+    """
+    @classmethod
+    def find_by_username(cls, username):
+
+        return cls.query.filter_by(username=username).first()
+
+    """
+    return all the user data in json form available in DB
+    """
+    @classmethod
+    def return_all(cls):
+
+        def to_json(x):
+
+            return {
+
+                'username': x.username,
+
+                'password': x.password
+
+            }
+
+        return {'users': [to_json(user) for user in UserModel.query.all()]}
+
+    """
+    Delete user data
+    """
+    @classmethod
+    def delete_all(cls):
+
+        try:
+
+            num_rows_deleted = db.session.query(cls).delete()
+
+            db.session.commit()
+
+            return {'message': f'{num_rows_deleted} row(s) deleted'}
+
+        except:
+
+            return {'message': 'Something went wrong'}
+
+    """
+    generate hash from password by encryption using sha256
+    """
+    @staticmethod
+    def generate_hash(password):
+
+        return sha256.hash(password)
+
+    """
+    Verify hash and password
+    """
+    @staticmethod
+    def verify_hash(password, hash_):
+
+        return sha256.verify(password, hash_)
+
+
+class RevokedTokenModel(db.Model):
+    """
+    Revoked Token Model Class
+    """
+
+    __tablename__ = 'revoked_tokens'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    jti = db.Column(db.String(120))
+
+    """
+    Save Token in DB
+    """
+
+    def add(self):
+
+        db.session.add(self)
+
+        db.session.commit()
+
+    """
+    Checking that token is blacklisted
+    """
+    @classmethod
+    def is_jti_blacklisted(cls, jti):
+
+        query = cls.query.filter_by(jti=jti).first()
+
+        return bool(query)
 
 
 def init_db():
@@ -111,17 +239,14 @@ def init_db():
 
     db.session.add(station)
     db.session.commit()
-
-    print(" A station with trips")
-    print(station.toDict())
+    """
     for trip in station.trips:
         print(trip.toDict())
 
-    print("A bus with trips")
-
-    print(bus.toDict())
     for trip in bus.trips:
         print(trip.toDict())
+
+    """
 
     if __name__ == '__main__':
         init_db()

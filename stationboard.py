@@ -1,5 +1,7 @@
 from app import create_app
 from app.model import Trip, Station, Bus
+from flask_jwt_extended import JWTManager
+
 app = create_app()
 
 

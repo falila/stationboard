@@ -3,6 +3,8 @@ from flask import jsonify, make_response
 from app.model import Trip, db, Bus
 from app.api.model_dto import UpdateTripDto, CreateTripDto
 from pydantic import ValidationError
+from flask_jwt_extended import jwt_required
+
 
 import json
 
@@ -18,6 +20,7 @@ class TripResource(Resource):
         except Exception as e:
             return {'message': str(e)}, 422
 
+    @jwt_required
     def delete(self, trip_id):
         try:
             Trip.query.filter_by(id=trip_id).delete(
@@ -27,6 +30,7 @@ class TripResource(Resource):
         except Exception as e:
             return {'message': str(e)}, 422
 
+    @jwt_required
     def post(self, trip_id):
         body = request.get_json()
         try:
@@ -58,6 +62,7 @@ class TripsResource(Resource):
 
         return jsonify(tripArr)
 
+    @jwt_required
     def post(self):
         data = request.get_json(force=True)
         _trip = None
@@ -67,7 +72,7 @@ class TripsResource(Resource):
             return e.errors(), 422
 
         if Trip.query.filter_by(name=_trip.name).count():
-            return {'message': 'A trip already exists with the same name.'}, 422
+            return {'message': 'A trip already exists with this name.'}, 422
         _trip_to_save = Trip(**_trip.dict())
         db.session.add(_trip_to_save)
         db.session.commit()
