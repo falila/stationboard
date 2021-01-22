@@ -26,6 +26,7 @@ class TripResource(Resource):
             Trip.query.filter_by(id=trip_id).delete(
                 synchronize_session=False)
             db.session.commit()
+
             return {'message': 'succes', 'id': trip_id}, 204
         except Exception as e:
             return {'message': str(e)}, 422
