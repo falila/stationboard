@@ -4,6 +4,7 @@ from app.model import Bus, Station, Trip, db
 import json
 from app.api.model_dto import CreateStationDto, UpdateStationDto
 from pydantic import ValidationError
+from flask_jwt_extended import jwt_required
 
 
 class StationResource(Resource):
@@ -15,6 +16,7 @@ class StationResource(Resource):
             return {'message': 'station not found'}, 400
         return jsonify(station.toDict())
 
+    @jwt_required
     def delete(self, station_id):
         try:
             Station.query.filter_by(id=station_id).delete(
@@ -24,6 +26,7 @@ class StationResource(Resource):
         except Exception as e:
             return {'message': str(e)}, 422
 
+    @jwt_required
     def post(self, station_id):
         body = request.get_json()
         try:
@@ -73,6 +76,7 @@ class StationsResource(Resource):
             statArr.append(station.toDict())
         return jsonify(statArr)
 
+    @jwt_required
     def post(self):
         data = request.get_json(force=True)
         stationDto = None

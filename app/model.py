@@ -12,6 +12,9 @@ db = SQLAlchemy()
 
 
 class Base(db.Model):
+    """
+    Base Model Class
+    """
     __abstract__ = True
 
     def toDict(self):
@@ -35,6 +38,9 @@ station_trips = Table('station_trips', Base.metadata,
 
 
 class Station(Base):
+    """
+    Station Model Class
+    """
     __tablename__ = 'stations'
     id = db.Column(Integer, primary_key=True)
     name = db.Column(String(50), nullable=False)
@@ -50,6 +56,9 @@ class Station(Base):
 
 
 class Bus(Base):
+    """
+    Bus Model Class
+    """
     __tablename__ = 'buses'
     id = db.Column(Integer, primary_key=True)
     code = db.Column(String(50), nullable=False)
@@ -65,6 +74,9 @@ class Bus(Base):
 
 
 class Trip(Base):
+    """
+    Trip Model Class
+    """
     __tablename__ = 'trips'
     id = db.Column(Integer, primary_key=True)
     name = db.Column(String(50), nullable=False)
@@ -169,6 +181,38 @@ class UserModel(db.Model):
         return sha256.verify(password, hash_)
 
 
+class RevokedTokenModel(db.Model):
+    """
+    Revoked Token Model Class
+    """
+
+    __tablename__ = 'revoked_tokens'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    jti = db.Column(db.String(120))
+
+    """
+    Save Token in DB
+    """
+
+    def add(self):
+
+        db.session.add(self)
+
+        db.session.commit()
+
+    """
+    Checking that token is blacklisted
+    """
+    @classmethod
+    def is_jti_blacklisted(cls, jti):
+
+        query = cls.query.filter_by(jti=jti).first()
+
+        return bool(query)
+
+
 def init_db():
     global db
     db.drop_all()
@@ -195,17 +239,14 @@ def init_db():
 
     db.session.add(station)
     db.session.commit()
-
-    print(" A station with trips")
-    print(station.toDict())
+    """
     for trip in station.trips:
         print(trip.toDict())
 
-    print("A bus with trips")
-
-    print(bus.toDict())
     for trip in bus.trips:
         print(trip.toDict())
+
+    """
 
     if __name__ == '__main__':
         init_db()
